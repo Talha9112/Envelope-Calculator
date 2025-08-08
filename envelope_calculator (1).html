@@ -522,12 +522,12 @@
       <div class="legend">
         <span><span style="color: #17a2b8;">■</span> Card Area</span>
         <span><span style="color: #efdac8;">■</span> Paper Boundary</span>
-        <span><span style="color: #28a745;">- -</span> Padding Zone</span>
+        <span><span style="color: #28a745;">- -</span> Card to Paper Boundary</span>
       </div>
     </div>
   </div>
 
-  <script>
+  <script>  
     (function(){
       const defaults={cardWidth:18,cardHeight:10,padding:0.5};
       const base=2.65285143, scale=48;
@@ -658,8 +658,8 @@
         
         const ns = 'http://www.w3.org/2000/svg';
         
-        // Calculate the diamond size - rotated orientation (45 degrees)
-        const diamondSize = Math.min(svgSize * 0.75, paperSize * 32);
+        // Calculate the diamond size - rotated orientation (45 degrees) - made smaller for smaller triangles
+        const diamondSize = Math.min(svgSize * 0.65, paperSize * 28);
         
         // Create the outer diamond envelope shape (NO STROKE as requested)
         const outerDiamond = document.createElementNS(ns, 'polygon');
@@ -684,11 +684,11 @@
         const scaledCardHeight = cardHeight * visualScale;
         const scaledPadding = padding * visualScale;
 
-        // Draw CONTINUOUS dotted lines (but stop at diamond boundaries)
-        const padTopY = centerY - (scaledCardHeight / 2) - scaledPadding;
-        const padBottomY = centerY + (scaledCardHeight / 2) + scaledPadding;
-        const padLeftX = centerX - (scaledCardWidth / 2) - scaledPadding;
-        const padRightX = centerX + (scaledCardWidth / 2) + scaledPadding;
+        // Draw dashed lines from card edges to diamond boundary (fixed position)
+        const cardTopY = centerY - (scaledCardHeight / 2);
+        const cardBottomY = centerY + (scaledCardHeight / 2);
+        const cardLeftX = centerX - (scaledCardWidth / 2);
+        const cardRightX = centerX + (scaledCardWidth / 2);
 
         // Calculate diamond boundary intersections for each line
         const dashedStyle = {
@@ -698,8 +698,8 @@
           'stroke-opacity': '0.7'
         };
 
-        // Top horizontal line - find intersections with diamond edges
-        const topY = padTopY;
+        // Top horizontal line - from card top to diamond boundary
+        const topY = cardTopY;
         const topLeftX = Math.max(centerX - outerHalfDiag, centerX - outerHalfDiag + Math.abs(topY - centerY));
         const topRightX = Math.min(centerX + outerHalfDiag, centerX + outerHalfDiag - Math.abs(topY - centerY));
         
@@ -713,8 +713,8 @@
           svg.appendChild(topLine);
         }
 
-        // Bottom horizontal line - find intersections with diamond edges
-        const bottomY = padBottomY;
+        // Bottom horizontal line - from card bottom to diamond boundary
+        const bottomY = cardBottomY;
         const bottomLeftX = Math.max(centerX - outerHalfDiag, centerX - outerHalfDiag + Math.abs(bottomY - centerY));
         const bottomRightX = Math.min(centerX + outerHalfDiag, centerX + outerHalfDiag - Math.abs(bottomY - centerY));
         
@@ -728,8 +728,8 @@
           svg.appendChild(bottomLine);
         }
 
-        // Left vertical line - find intersections with diamond edges
-        const leftX = padLeftX;
+        // Left vertical line - from card left to diamond boundary
+        const leftX = cardLeftX;
         const leftTopY = Math.max(centerY - outerHalfDiag, centerY - outerHalfDiag + Math.abs(leftX - centerX));
         const leftBottomY = Math.min(centerY + outerHalfDiag, centerY + outerHalfDiag - Math.abs(leftX - centerX));
         
@@ -743,8 +743,8 @@
           svg.appendChild(leftLine);
         }
 
-        // Right vertical line - find intersections with diamond edges
-        const rightX = padRightX;
+        // Right vertical line - from card right to diamond boundary
+        const rightX = cardRightX;
         const rightTopY = Math.max(centerY - outerHalfDiag, centerY - outerHalfDiag + Math.abs(rightX - centerX));
         const rightBottomY = Math.min(centerY + outerHalfDiag, centerY + outerHalfDiag - Math.abs(rightX - centerX));
         

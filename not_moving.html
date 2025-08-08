@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Envelope Calculator</title>
+  <style>
+    body {
+       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 1rem;
+      margin: 0;
+      min-height: 100vh;
+      color: #333;
+    }
+        
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+        
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+        
+    .top-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+        
+    .unit-toggle-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+        
+    .unit-toggle {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+        
+    .unit-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+        
+    .unit-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+        
+    .unit-slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+        
+    input:checked + .unit-slider {
+      background-color: #17a2b8;
+    }
+        
+    input:checked + .unit-slider:before {
+      transform: translateX(26px);
+    }
+        
+    .unit-label {
+      font-weight: 600;
+      color: #495057;
+      font-size: 1rem;
+    }
+        
+    .unit-label.active {
+      color: #17a2b8;
+    }
+        
+    .controls-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+        
+    .slider-container {
+       background: #f8f9fa;
+      padding: 1.25rem;
+      border-radius: 12px;
+      border-left: 4px solid #17a2b8;
+    }
+        
+    label {
+       display: block;
+      font-size: 0.95rem;
+       font-weight: 600;
+      color: #7c646a;
+      margin-bottom: 0.5rem;
+    }
+        
+    .slider-container input {
+       width: 100%;
+       height: 6px;
+      background: #dee2e6;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      margin: 0.5rem 0;
+    }
+        
+    .slider-container input::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #17a2b8;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+        
+    .slider-container input::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #17a2b8;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+        
+    .value-display {
+       font-family: 'Courier New', monospace;
+      color: #17a2b8;
+      font-weight: bold;
+      font-size: 1rem;
+      float: right;
+    }
+        
+    .outputs-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+        
+    .output-card {
+      background: #f7b0aa;
+      color: white;
+      padding: 1.25rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+        
+    .output-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.8rem;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+        
+    .output-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+    }
+        
+    .visual-section {
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+        
+    .visual-section h3 {
+      margin: 0 0 1rem 0;
+      color: #495057;
+      font-size: 1.1rem;
+    }
+        
+    #svgCanvas {
+       border: none;
+      display: block;
+       margin: 1rem auto;
+      max-width: 100%;
+      height: auto;
+    }
+        
+    .legend {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #6c757d;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+        
+    .legend span {
+      white-space: nowrap;
+    }
+     
+    #warningMessage {
+      display: none;
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: #856404;
+      font-size: 0.9rem;
+    }
+        
+    /* Desktop optimizations */
+    @media (min-width: 1025px) {
+      body {
+        padding: 2rem;
+      }
+            
+      .container {
+        padding: 2rem;
+        gap: 3rem;
+      }
+            
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+      }
+            
+      .top-section {
+        gap: 2rem;
+      }
+            
+      .controls-section {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+            
+      .slider-container {
+        padding: 1.5rem;
+      }
+            
+      .outputs-section {
+        grid-template-columns: repeat(3, 1fr);
+      }
+            
+      .output-card {
+        padding: 1.5rem;
+      }
+            
+      .output-card h3 {
+        font-size: 0.9rem;
+      }
+            
+      .output-value {
+        font-size: 1.4rem;
+      }
+            
+      .visual-section {
+        padding: 2rem;
+      }
+            
+      .legend {
+        font-size: 0.9rem;
+      }
+            
+      .value-display {
+        font-size: 1.1rem;
+      }
+            
+      label {
+        font-size: 1rem;
+      }
+    }
+        
+    /* Tablet optimizations */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .controls-section {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+      }
+            
+      .outputs-section {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+        
+    /* Mobile optimizations */
+    @media (max-width: 767px) {
+      body {
+        padding: 0.5rem;
+      }
+            
+      .container {
+        padding: 1rem;
+        gap: 1.5rem;
+        border-radius: 12px;
+      }
+            
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+            
+      .unit-toggle-container {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+            
+      .controls-section {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+            
+      .slider-container {
+        padding: 1rem;
+      }
+            
+      .outputs-section {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+            
+      .output-card {
+        padding: 1rem;
+      }
+            
+      .output-card h3 {
+        font-size: 0.75rem;
+      }
+            
+      .output-value {
+        font-size: 1.1rem;
+      }
+            
+      .visual-section {
+        padding: 1rem;
+      }
+            
+      .legend {
+        font-size: 0.8rem;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+      }
+            
+      .value-display {
+        font-size: 0.95rem;
+      }
+            
+      label {
+        font-size: 0.9rem;
+      }
+            
+      #warningMessage {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+      }
+    }
+        
+    /* Very small mobile devices */
+    @media (max-width: 480px) {
+      body {
+        padding: 0.25rem;
+      }
+            
+      .container {
+        padding: 0.75rem;
+        gap: 1.25rem;
+        border-radius: 8px;
+      }
+            
+      h1 {
+        font-size: 1.3rem;
+      }
+            
+      .slider-container {
+        padding: 0.75rem;
+      }
+            
+      .output-card {
+        padding: 0.75rem;
+      }
+            
+      .visual-section {
+        padding: 0.75rem;
+      }
+            
+      .legend {
+        font-size: 0.75rem;
+      }
+            
+      .value-display {
+        font-size: 0.9rem;
+      }
+            
+      label {
+        font-size: 0.85rem;
+      }
+    }
+        
+    /* Landscape mobile orientation */
+    @media (max-width: 767px) and (orientation: landscape) {
+      .outputs-section {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+      }
+            
+      .controls-section {
+        grid-template-columns: repeat(2, 1fr);
+      }
+            
+      .visual-section {
+        padding: 1rem;
+      }
+            
+      #svgCanvas {
+        max-height: 200px;
+      }
+    }
+        
+    /* Touch improvements for mobile */
+    @media (max-width: 767px) {
+      .slider-container input {
+        height: 8px;
+        margin: 0.75rem 0;
+      }
+            
+      .slider-container input::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+      }
+            
+      .slider-container input::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Section -->
+    <div class="top-section">
+      <h1><span style="color:#f7b0aa">ENVELOPE</span> <span style="color: #7c646a !important;">CALCULATOR </span></h1>
+      
+      <!-- Unit Toggle -->
+      <div class="unit-toggle-container">
+        <span class="unit-label" id="inchesLabel">Inches</span>
+        <label class="unit-toggle">
+          <input type="checkbox" id="unitToggle">
+          <span class="unit-slider"></span>
+        </label>
+        <span class="unit-label" id="mmLabel">Millimeters</span>
+      </div>
+      
+      <div class="controls-section">
+        <div class="slider-container">
+          <label for="cardWidth">Card Width: <span id="cardWidthVal" class="value-display"></span></label>
+          <input type="range" id="cardWidth" min="0.125" max="10" step="0.125" value="6">
+        </div>
+                
+        <div class="slider-container">
+          <label for="cardHeight">Card Height: <span id="cardHeightVal" class="value-display"></span></label>
+          <input type="range" id="cardHeight" min="0.125" max="10" step="0.125" value="4">
+        </div>
+                
+        <div class="slider-container">
+          <label for="padding">Card Padding: <span id="paddingVal" class="value-display"></span></label>
+          <input type="range" id="padding" min="0" max="0.5" step="0.125" value="0.25">
+        </div>
+      </div>
+      
+      <div class="outputs-section">
+        <div class="output-card">
+          <h3>Paper Size</h3>
+          <div style="color: #7c646a;" id="paperSizeVal" class="output-value"></div>
+        </div>
+        <div class="output-card">
+          <h3>Start Number</h3>
+          <div style="color: #7c646a;" id="alignmentVal" class="output-value"></div>
+        </div>
+        <div class="output-card">
+          <h3>Liner Size</h3>
+          <div style="color: #7c646a;" id="cornerSizeVal" class="output-value"></div>
+        </div>
+      </div>
+      
+      <div id="warningMessage"></div>
+    </div>
+        
+    <!-- Visual Section Below -->
+    <div class="visual-section">
+      <svg id="svgCanvas"></svg>
+      <div class="legend">
+        <span><span style="color: #17a2b8;">■</span> Card Area</span>
+        <span><span style="color: #efdac8;">■</span> Paper Boundary</span>
+        <span><span style="color: #28a745;">- -</span> Padding Zone</span>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    (function(){
+      const defaults={cardWidth:18,cardHeight:10,padding:0.5};
+      const base=2.65285143, scale=48;
+      let isMetric = false; // Track current unit system
+            
+      function gcd(a,b){ return b?gcd(b,a%b):a; }
+            
+      function formatInches(val){
+        const rounded=Math.round(val*8)/8;
+        const whole=Math.floor(rounded), frac=rounded-whole;
+        const num=Math.round(frac*8), den=8;
+        if(num===0) return whole + '"';
+        const g=gcd(num,den);
+        return (whole>0?whole+' ':'') + (num/g) + '/' + (den/g) + '"';
+      }
+      
+      function formatMm(val){
+        const mm = val * 25.4; // Convert inches to mm
+        return Math.round(mm * 10) / 10 + ' mm'; // Round to 1 decimal place
+      }
+      
+      function formatValue(val) {
+        return isMetric ? formatMm(val) : formatInches(val);
+      }
+      
+      function inchesToMm(inches) {
+        return inches * 25.4;
+      }
+      
+      function mmToInches(mm) {
+        return mm / 25.4;
+      }
+      
+      function updateSliderRanges() {
+        const cardWidth = document.getElementById('cardWidth');
+        const cardHeight = document.getElementById('cardHeight');
+        const padding = document.getElementById('padding');
+
+        if (isMetric) {
+          // Convert to mm ranges
+          cardWidth.min = inchesToMm(0.125).toString();
+          cardWidth.max = inchesToMm(10).toString();
+          cardWidth.step = inchesToMm(0.125).toString();
+          cardWidth.value = inchesToMm(parseFloat(cardWidth.value) || 6).toString();
+          
+          cardHeight.min = inchesToMm(0.125).toString();
+          cardHeight.max = inchesToMm(10).toString();
+          cardHeight.step = inchesToMm(0.125).toString();
+          cardHeight.value = inchesToMm(parseFloat(cardHeight.value) || 4).toString();
+          
+          padding.min = "0";
+          padding.max = inchesToMm(0.5).toString();
+          padding.step = inchesToMm(0.125).toString();
+          padding.value = inchesToMm(parseFloat(padding.value) || 0.25).toString();
+        } else {
+          // Convert to inch ranges
+          const currentCardWidth = mmToInches(parseFloat(cardWidth.value) || inchesToMm(6));
+          const currentCardHeight = mmToInches(parseFloat(cardHeight.value) || inchesToMm(4));
+          const currentPadding = mmToInches(parseFloat(padding.value) || inchesToMm(0.25));
+          
+          cardWidth.min = "0.125";
+          cardWidth.max = "10";
+          cardWidth.step = "0.125";
+          cardWidth.value = currentCardWidth.toString();
+          
+          cardHeight.min = "0.125";
+          cardHeight.max = "10";
+          cardHeight.step = "0.125";
+          cardHeight.value = currentCardHeight.toString();
+          
+          padding.min = "0";
+          padding.max = "0.5";
+          padding.step = "0.125";
+          padding.value = currentPadding.toString();
+        }
+      }
+      
+      function toggleUnits() {
+        isMetric = !isMetric;
+                
+        // Update label styling
+        const inchesLabel = document.getElementById('inchesLabel');
+        const mmLabel = document.getElementById('mmLabel');
+                
+        if (isMetric) {
+          inchesLabel.classList.remove('active');
+          mmLabel.classList.add('active');
+        } else {
+          mmLabel.classList.remove('active');
+          inchesLabel.classList.add('active');
+        }
+
+        updateSliderRanges();
+        draw();
+      }
+      
+      function getCurrentValues() {
+        const cardWidthVal = parseFloat(document.getElementById('cardWidth').value);
+        const cardHeightVal = parseFloat(document.getElementById('cardHeight').value);
+        const paddingVal = parseFloat(document.getElementById('padding').value);
+
+        if (isMetric) {
+          // Convert mm to inches for calculations
+          return {
+            w: mmToInches(cardWidthVal),
+            h: mmToInches(cardHeightVal),
+            pad: mmToInches(paddingVal)
+          };
+        } else {
+          return {
+            w: cardWidthVal,
+            h: cardHeightVal,
+            pad: paddingVal
+          };
+        }
+      }
+      
+      function createDiamondEnvelope(svg, cardWidth, cardHeight, padding, paperSize, cornerSize) {
+        // Make SVG responsive to container width
+        const containerWidth = svg.parentElement.clientWidth;
+        const svgSize = Math.min(400, containerWidth - 40);
+        svg.setAttribute('width', svgSize);
+        svg.setAttribute('height', svgSize);
+        svg.setAttribute('viewBox', `0 0 ${svgSize} ${svgSize}`);
+                
+        const centerX = svgSize / 2;
+        const centerY = svgSize / 2;
+                
+        const ns = 'http://www.w3.org/2000/svg';
+                
+        // Calculate the diamond size - rotated orientation (45 degrees)
+        const diamondSize = Math.min(svgSize * 0.75, paperSize * 32);
+                
+        // Create the outer diamond envelope shape (NO STROKE as requested)
+        const outerDiamond = document.createElementNS(ns, 'polygon');
+        const outerHalfDiag = diamondSize / 2;
+                
+        // Rotated diamond points (45 degree rotation)
+        const outerDiamondPoints = [
+          [centerX, centerY - outerHalfDiag], // top
+          [centerX + outerHalfDiag, centerY], // right
+          [centerX, centerY + outerHalfDiag], // bottom
+          [centerX - outerHalfDiag, centerY]  // left
+        ];
+                
+        outerDiamond.setAttribute('points', outerDiamondPoints.map(p => `${p[0]},${p[1]}`).join(' '));
+        outerDiamond.setAttribute('fill', '#efdac8');
+        outerDiamond.setAttribute('fill-opacity', '0.6');
+        svg.appendChild(outerDiamond);
+
+        // Calculate card dimensions for visualization
+        const visualScale = Math.min(20, svgSize / 20);
+        const scaledCardWidth = cardWidth * visualScale;
+        const scaledCardHeight = cardHeight * visualScale;
+
+        // FIXED: Define consistent positions for dashed lines within the diamond
+        // These positions are based on fixed proportions of the diamond, not the card dimensions
+        const dashedLineOffset = outerHalfDiag * 0.3; // Fixed offset from diamond center (30% of half diagonal)
+        
+        // Fixed positions for dashed lines
+        const fixedPadTopY = centerY - dashedLineOffset;
+        const fixedPadBottomY = centerY + dashedLineOffset;
+        const fixedPadLeftX = centerX - dashedLineOffset;
+        const fixedPadRightX = centerX +dashedLineOffset;
+
+        // Calculate diamond boundary intersections for each line
+        const dashedStyle = {
+          stroke: '#7c646a',
+          'stroke-width': Math.max(1, svgSize / 200),
+          'stroke-dasharray': '5,5',
+          'stroke-opacity': '0.7'
+        };
+
+        // Top horizontal line - find intersections with diamond edges
+        const topY = fixedPadTopY;
+        const topLeftX = Math.max(centerX - outerHalfDiag, centerX - outerHalfDiag + Math.abs(topY - centerY));
+        const topRightX = Math.min(centerX + outerHalfDiag, centerX + outerHalfDiag - Math.abs(topY - centerY));
+                
+        if (topY > centerY - outerHalfDiag && topY < centerY + outerHalfDiag) {
+          const topLine = document.createElementNS(ns, 'line');
+          topLine.setAttribute('x1', topLeftX);
+          topLine.setAttribute('y1', topY);
+          topLine.setAttribute('x2', topRightX);
+          topLine.setAttribute('y2', topY);
+          Object.entries(dashedStyle).forEach(([k, v]) => topLine.setAttribute(k, v));
+          svg.appendChild(topLine);
+        }
+
+        // Bottom horizontal line - find intersections with diamond edges
+        const bottomY = fixedPadBottomY;
+        const bottomLeftX = Math.max(centerX - outerHalfDiag, centerX - outerHalfDiag + Math.abs(bottomY - centerY));
+        const bottomRightX = Math.min(centerX + outerHalfDiag, centerX + outerHalfDiag - Math.abs(bottomY - centerY));
+                
+        if (bottomY > centerY - outerHalfDiag && bottomY < centerY + outerHalfDiag) {
+          const bottomLine = document.createElementNS(ns, 'line');
+          bottomLine.setAttribute('x1', bottomLeftX);
+          bottomLine.setAttribute('y1', bottomY);
+          bottomLine.setAttribute('x2', bottomRightX);
+          bottomLine.setAttribute('y2', bottomY);
+          Object.entries(dashedStyle).forEach(([k, v]) => bottomLine.setAttribute(k, v));
+          svg.appendChild(bottomLine);
+        }
+
+        // Left vertical line - find intersections with diamond edges
+        const leftX = fixedPadLeftX;
+        const leftTopY = Math.max(centerY - outerHalfDiag, centerY - outerHalfDiag + Math.abs(leftX - centerX));
+        const leftBottomY = Math.min(centerY + outerHalfDiag, centerY + outerHalfDiag - Math.abs(leftX - centerX));
+                
+        if (leftX > centerX - outerHalfDiag && leftX < centerX + outerHalfDiag) {
+          const leftLine = document.createElementNS(ns, 'line');
+          leftLine.setAttribute('x1', leftX);
+          leftLine.setAttribute('y1', leftTopY);
+          leftLine.setAttribute('x2', leftX);
+          leftLine.setAttribute('y2', leftBottomY);
+          Object.entries(dashedStyle).forEach(([k, v]) => leftLine.setAttribute(k, v));
+          svg.appendChild(leftLine);
+        }
+
+        // Right vertical line - find intersections with diamond edges
+        const rightX = fixedPadRightX;
+        const rightTopY = Math.max(centerY - outerHalfDiag, centerY - outerHalfDiag + Math.abs(rightX - centerX));
+        const rightBottomY = Math.min(centerY + outerHalfDiag, centerY + outerHalfDiag - Math.abs(rightX - centerX));
+                
+        if (rightX > centerX - outerHalfDiag && rightX < centerX + outerHalfDiag) {
+          const rightLine = document.createElementNS(ns, 'line');
+          rightLine.setAttribute('x1', rightX);
+          rightLine.setAttribute('y1', rightTopY);
+          rightLine.setAttribute('x2', rightX);
+          rightLine.setAttribute('y2', rightBottomY);
+          Object.entries(dashedStyle).forEach(([k, v]) => rightLine.setAttribute(k, v));
+          svg.appendChild(rightLine);
+        }
+
+        // Draw the card with SHARP CORNERS (no rounded corners)
+        const cardRect = document.createElementNS(ns, 'rect');
+        cardRect.setAttribute('x', centerX - scaledCardWidth/2);
+        cardRect.setAttribute('y', centerY - scaledCardHeight/2);
+        cardRect.setAttribute('width', scaledCardWidth);
+        cardRect.setAttribute('height', scaledCardHeight);
+        cardRect.setAttribute('fill', '#17a2b8');
+        cardRect.setAttribute('fill-opacity', '0.9');
+        svg.appendChild(cardRect);
+                  
+        // Add dimension labels for the card - make them responsive
+        const fontSize = Math.max(10, svgSize / 35);
+                
+        const widthLabel = document.createElementNS(ns, 'text');
+        widthLabel.setAttribute('x', centerX);
+        widthLabel.setAttribute('y', centerY - scaledCardHeight/2 - 10);
+        widthLabel.setAttribute('text-anchor', 'middle');
+        widthLabel.setAttribute('font-family', 'Arial, sans-serif');
+        widthLabel.setAttribute('font-size', fontSize);
+        widthLabel.setAttribute('fill', '#495057');
+        widthLabel.setAttribute('font-weight', 'bold');
+        widthLabel.textContent = formatValue(cardWidth);
+        svg.appendChild(widthLabel);
+
+        const heightLabel = document.createElementNS(ns, 'text');
+        heightLabel.setAttribute('x', centerX - scaledCardWidth/2 - 28);
+        heightLabel.setAttribute('y', centerY + 5);
+        heightLabel.setAttribute('text-anchor', 'middle');
+        heightLabel.setAttribute('font-family', 'Arial, sans-serif');
+        heightLabel.setAttribute('font-size', fontSize);
+        heightLabel.setAttribute('fill', '#495057');
+        heightLabel.setAttribute('font-weight', 'bold');
+        heightLabel.textContent = formatValue(cardHeight);
+        svg.appendChild(heightLabel);
+      }
+      
+      function draw(){
+        const {w, h, pad} = getCurrentValues();
+        const wp=w+pad, hp=h+pad;
+        const dotted=(wp+hp)/Math.SQRT2, outer=dotted+1;
+
+        // Update labels
+        document.getElementById('cardWidthVal').textContent = formatValue(w);
+        document.getElementById('cardHeightVal').textContent = formatValue(h);
+        document.getElementById('paddingVal').textContent = formatValue(pad);
+        document.getElementById('paperSizeVal').textContent = formatValue(outer);
+
+        const warningDiv = document.getElementById('warningMessage');
+        let warningMsg = '';
+
+        if (outer > 12) {
+          warningMsg += `❗ Your required paper size exceeds the limits of this tool (12"). Please reduce your card size or padding.<br>`;
+        }
+
+        if (w < 2 || h < 2) {
+          warningMsg += `ℹ️ Very small envelopes may be hard to fold. Consider increasing card size or padding.`;
+        }
+
+        warningDiv.innerHTML = warningMsg;
+        warningDiv.style.display = warningMsg ? 'block' : 'none';
+
+        const svg=document.getElementById('svgCanvas');
+        while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+        // Calculate alignment and corner size using original logic
+        const W=wp*scale, H=hp*scale, OS=outer*scale;
+        const cx=OS/2, cy=OS/2, theta=Math.PI/4;
+                
+        function rot(p){ return { x:p.x*Math.cos(theta)-p.y*Math.sin(theta), y:p.x*Math.sin(theta)+p.y*Math.cos(theta) }; }
+        const pts=[{x:-W/2,y:-H/2},{x:W/2,y:-H/2},{x:W/2,y:H/2},{x:-W/2,y:H/2}]
+          .map(rot).map(p=>({x:p.x+cx,y:p.y+cy}));
+
+        let lines=[], negLine=null;
+        pts.forEach((A,i)=>{
+          const B=pts[(i+1)%4];
+          const dx=B.x-A.x, dy=B.y-A.y;
+          let ints=[];
+          if(dx!==0){
+            [0,OS].forEach(xb=>{
+              const t=(xb-A.x)/dx, y=A.y+t*dy;
+              if(y>=0&&y<=OS) ints.push({pt:{x:xb,y:y},t});
+            });
+          }
+          if(dy!==0){
+            [0,OS].forEach(yb=>{
+              const t=(yb-A.y)/dy, x=A.x+t*dx;
+              if(x>=0&&x<=OS) ints.push({pt:{x:x,y:yb},t});
+            });
+          }
+          if(ints.length>=2){
+            ints.sort((a,b)=>a.t-b.t);
+            const S=ints[0].pt, E=ints[ints.length-1].pt;
+            const len=Math.hypot(E.x-S.x,E.y-S.y)/scale;
+            const slope=(E.y-S.y)/(E.x-S.x);
+            lines.push({S,E,len,slope});
+            if(slope<0) negLine={S,E};
+          }
+        });
+
+        let align=0;
+        lines.forEach(l=>{
+          const val=Math.round((l.len-base)*8);
+          align=Math.max(align,val);
+        });
+        align=Math.max(0,Math.min(60,align));
+        document.getElementById('alignmentVal').textContent = align;
+
+        let cornerSize=0;
+        if(negLine){
+          const {S,E}=negLine;
+          const m=(E.y-S.y)/(E.x-S.x);
+          const offsetPx=0.375*scale;
+          const y0=S.y + m*(offsetPx-S.x);
+          const sizePx=y0 - offsetPx;
+          cornerSize=sizePx/scale;
+        }
+        document.getElementById('cornerSizeVal').textContent = formatValue(cornerSize);
+
+        // Create diamond envelope visualization
+        createDiamondEnvelope(svg, w, h, pad, outer, cornerSize);
+      }
+      
+      // Initialize unit system
+      const unitToggle = document.getElementById('unitToggle');
+      const inchesLabel = document.getElementById('inchesLabel');
+      const mmLabel = document.getElementById('mmLabel');
+            
+      // Set initial state (inches)
+      inchesLabel.classList.add('active');
+            
+      // Add event listener for unit toggle
+      unitToggle.addEventListener('change', toggleUnits);
+      
+      // Add event listeners for sliders
+      ['cardWidth','cardHeight','padding'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+            
+      // Redraw on window resize to maintain responsiveness
+      window.addEventListener('resize', draw);
+      window.onload=draw;
+    })();
+  </script>
+</body>
+</html>
